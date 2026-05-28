@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Starlink Daily Usage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="badge">Starlink Data Scraper</div>
+      <h1>Daily Usage Extractor</h1>
+      <p>Upload the saved Starlink HTML snapshot and export a clean CSV of per-day usage.</p>
+    </header>
+
+    <section class="panel">
+      <div class="mode-switch">
+        <button class="mode-button{% if mode != 'live' %} active{% endif %}" type="button" data-mode="upload">
+          Upload HTML
+        </button>
+        <button class="mode-button{% if mode == 'live' %} active{% endif %}" type="button" data-mode="live">
+          Live Login
+        </button>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" class="upload" id="upload-form">
+        <input type="hidden" name="mode" value="upload" />
+        <label class="file-input">
+          <input type="file" name="html_file" accept=".html" required />
+          <span>Choose Starlink HTML file</span>
+        </label>
+        <button type="submit" class="cta">Parse Daily Usage</button>
+      </form>
+
+      <form method="post" class="upload live-form" id="live-form">
+        <input type="hidden" name="mode" value="live" />
+        <input class="text-input" type="text" name="username" placeholder="Starlink username" />
+        <input class="text-input" type="password" name="password" placeholder="Starlink password" />
+        <input class="text-input" type="url" name="target_url" placeholder="Daily usage URL" required />
+          <textarea class="text-input text-area" name="cookies_json" placeholder="Paste cookies JSON (optional)" rows="4"></textarea>
+        <label class="checkbox-row">
+          <input type="checkbox" name="open_browser" />
+          <span>Open browser window (use if login blocks)</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" name="use_edge" checked />
+          <span>Use Microsoft Edge for login</span>
+        </label>
+          <p class="helper">If automation fails, paste cookies JSON from your logged-in Edge session.</p>
+        <button type="submit" class="cta">Log In & Scrape</button>
+      </form>
+
+      {% if error %}
+      <div class="alert">{{ error }}</div>
+      {% endif %}
+
+      {% if rows %}
+      <div class="results">
+        <div class="results-head">
+          <h2>Parsed Results</h2>
+          <a class="download" href="/download">Download CSV</a>
+        </div>
+        <p class="filename">Source: {{ filename }}</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Usage (GB)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in rows %}
+              <tr>
+                <td>Day {{ row.day_index }}</td>
+                <td>{{ "%.2f"|format(row.usage_gb) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% elif has_csv %}
+      <div class="results">
+        <div class="results-head">
+          <h2>Latest CSV</h2>
+          <a class="download" href="/download">Download CSV</a>
+        </div>
+        <p class="filename">A CSV is ready for download.</p>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="note">
+      <h3>How it works</h3>
+      <p>This parser reads the chart bars, converts bar height to GB using the chart scale, and assigns Day 1..N based on bar order.</p>
+    </section>
+  </div>
+  <script>
+    const uploadForm = document.getElementById("upload-form");
+    const liveForm = document.getElementById("live-form");
+    const buttons = document.querySelectorAll(".mode-button");
+
+    function setMode(mode) {
+      const isLive = mode === "live";
+      liveForm.style.display = isLive ? "flex" : "none";
+      uploadForm.style.display = isLive ? "none" : "flex";
+      buttons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.mode === mode);
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setMode(button.dataset.mode));
+    });
+
+    setMode("{{ 'live' if mode == 'live' else 'upload' }}");
+  </script>
+</body>
+</html>

@@ -1,0 +1,266 @@
+:root {
+  --ink: #0a0a0a;
+  --cloud: #f5f3ef;
+  --night: #1a1a1a;
+  --accent: #f7b33d;
+  --accent-deep: #d9822b;
+  --card: rgba(255, 255, 255, 0.86);
+  --shadow: rgba(12, 12, 12, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at top, #fff2d9 0%, #f6f0e7 35%, #e8ecef 80%);
+}
+
+.page {
+  min-height: 100vh;
+  padding: 48px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.hero {
+  background: linear-gradient(120deg, #111111 0%, #2b2b2b 100%);
+  color: #f7f4ef;
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(247, 179, 61, 0.8), rgba(247, 179, 61, 0));
+  pointer-events: none;
+}
+
+.badge {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+}
+
+.hero p {
+  margin: 0;
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+.panel {
+  background: var(--card);
+  backdrop-filter: blur(14px);
+  padding: 28px;
+  border-radius: 20px;
+  box-shadow: 0 18px 32px rgba(10, 10, 10, 0.12);
+}
+
+.mode-switch {
+  display: inline-flex;
+  gap: 8px;
+  background: #f3efe7;
+  padding: 6px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+
+.mode-button {
+  border: none;
+  background: transparent;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--night);
+}
+
+.mode-button.active {
+  background: #111111;
+  color: #f7f4ef;
+}
+
+.upload {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.live-form {
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.file-input {
+  border: 2px dashed var(--night);
+  padding: 14px 18px;
+  border-radius: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  background: #fff;
+}
+
+.text-input {
+  border: 1px solid #d6d2ca;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+}
+
+.text-area {
+  resize: vertical;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #444444;
+}
+
+.helper {
+  margin: 0;
+  color: #5b5247;
+  font-size: 0.85rem;
+}
+
+.file-input input {
+  display: none;
+}
+
+.cta {
+  background: var(--accent);
+  color: #2b1b04;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(217, 130, 43, 0.3);
+}
+
+.alert {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #ffe5e5;
+  color: #8f1d1d;
+  font-weight: 600;
+}
+
+.results {
+  margin-top: 28px;
+}
+
+.results-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.results h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.download {
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--night);
+  border-bottom: 2px solid var(--accent-deep);
+}
+
+.filename {
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  color: #3a3a3a;
+  margin: 8px 0 16px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid #e0ded9;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+th,
+td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f0efea;
+}
+
+th {
+  background: #f7f4ee;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.note {
+  padding: 20px 24px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  border-left: 6px solid var(--accent);
+}
+
+.note h3 {
+  margin-top: 0;
+}
+
+@media (max-width: 720px) {
+  .hero,
+  .panel {
+    padding: 22px;
+  }
+
+  .upload {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cta {
+    width: 100%;
+  }
+}
