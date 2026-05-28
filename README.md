@@ -20,6 +20,23 @@ python app.py
 ```
 Then open http://127.0.0.1:5055
 
+## Professor Quick Start
+1) Install dependencies:
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate
+   pip install -r requirements.txt
+   python -m playwright install
+   ```
+2) Run the app:
+   ```bash
+   python app.py
+   ```
+3) Open http://127.0.0.1:5055
+4) Log in to Starlink in Edge and export cookies as JSON.
+5) Paste cookies JSON + daily usage URL into Live Login and click Log In & Scrape.
+6) Download the CSV.
+
 ## Live Scrape (Cookie Method)
 This is the most reliable method because Starlink blocks automated logins.
 
