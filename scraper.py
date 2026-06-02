@@ -3,6 +3,7 @@ import io
 import json
 import re
 from dataclasses import dataclass
+from datetime import date, timedelta
 from typing import List, Optional
 
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
@@ -12,7 +13,11 @@ from playwright.sync_api import sync_playwright
 @dataclass
 class DailyUsage:
     day_index: int
+    date: str
+    day_of_week: str
+    month: str
     usage_gb: float
+    pct_change_prev_day: str
 
 
 _BAR_RECT_REGEX = re.compile(
@@ -58,7 +63,10 @@ def _extract_axis_max_gb(html: str) -> float:
     return max(values) if values else 20.0
 
 
-def parse_daily_usage(html: str) -> List[DailyUsage]:
+def parse_daily_usage(
+    html: str,
+    reference_date: Optional[date] = None,
+) -> List["DailyUsage"]:
     bars = _extract_bars(html)
     if not bars:
         raise ValueError("No daily usage bars found in HTML.")
@@ -73,10 +81,35 @@ def parse_daily_usage(html: str) -> List[DailyUsage]:
 
     max_gb = _extract_axis_max_gb(html)
 
+    # Use today as the billing-month anchor when no reference date is given.
+    # Day 1 = the 1st of that month; Day N = the Nth of that month.
+    if reference_date is None:
+        reference_date = date.today()
+    month_start = date(reference_date.year, reference_date.month, 1)
+
+    usages: List[float] = []
+    for bar in bars:
+        usages.append(round((bar["height"] / chart_height) * max_gb, 2))
+
     daily = []
-    for index, bar in enumerate(bars, start=1):
-        usage = (bar["height"] / chart_height) * max_gb
-        daily.append(DailyUsage(day_index=index, usage_gb=round(usage, 2)))
+    for index, usage in enumerate(usages, start=1):
+        day_date = month_start + timedelta(days=index - 1)
+        if index == 1 or usages[index - 2] == 0:
+            pct = "NaN"
+        else:
+            prev = usages[index - 2]
+            pct = f"{((usage - prev) / prev * 100):.4f}"
+
+        daily.append(
+            DailyUsage(
+                day_index=index,
+                date=day_date.strftime("%Y-%m-%d"),
+                day_of_week=day_date.strftime("%A"),
+                month=day_date.strftime("%B"),
+                usage_gb=usage,
+                pct_change_prev_day=pct,
+            )
+        )
 
     return daily
 
@@ -200,7 +233,14 @@ def _parse_cookie_json(cookie_text: str) -> List[dict]:
 def to_csv(daily: List[DailyUsage]) -> str:
     buffer = io.StringIO()
     writer = csv.writer(buffer)
-    writer.writerow(["day_index", "usage_gb"])
+    writer.writerow(["day_index", "date", "day_of_week", "month", "usage_gb", "pct_change_prev_day"])
     for entry in daily:
-        writer.writerow([entry.day_index, f"{entry.usage_gb:.2f}"])
+        writer.writerow([
+            entry.day_index,
+            entry.date,
+            entry.day_of_week,
+            entry.month,
+            f"{entry.usage_gb:.2f}",
+            entry.pct_change_prev_day,
+        ])
     return buffer.getvalue()

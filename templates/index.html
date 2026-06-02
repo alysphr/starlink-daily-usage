@@ -41,7 +41,7 @@
         <input class="text-input" type="text" name="username" placeholder="Starlink username" />
         <input class="text-input" type="password" name="password" placeholder="Starlink password" />
         <input class="text-input" type="url" name="target_url" placeholder="Daily usage URL" required />
-          <textarea class="text-input text-area" name="cookies_json" placeholder="Paste cookies JSON (optional)" rows="4"></textarea>
+          <textarea class="text-input text-area" name="cookies_json" placeholder="Paste cookies JSON (required if login is blocked)" rows="4"></textarea>
         <label class="checkbox-row">
           <input type="checkbox" name="open_browser" />
           <span>Open browser window (use if login blocks)</span>
@@ -50,7 +50,7 @@
           <input type="checkbox" name="use_edge" checked />
           <span>Use Microsoft Edge for login</span>
         </label>
-          <p class="helper">If automation fails, paste cookies JSON from your logged-in Edge session.</p>
+          <p class="helper">If automation fails or shows an error, paste cookies JSON from your logged-in Edge session.</p>
         <button type="submit" class="cta">Log In & Scrape</button>
       </form>
 
@@ -70,14 +70,22 @@
             <thead>
               <tr>
                 <th>Day</th>
+                <th>Date</th>
+                <th>Day of Week</th>
+                <th>Month</th>
                 <th>Usage (GB)</th>
+                <th>% Change (prev day)</th>
               </tr>
             </thead>
             <tbody>
               {% for row in rows %}
               <tr>
                 <td>Day {{ row.day_index }}</td>
+                <td>{{ row.date }}</td>
+                <td>{{ row.day_of_week }}</td>
+                <td>{{ row.month }}</td>
                 <td>{{ "%.2f"|format(row.usage_gb) }}</td>
+                <td class="pct {% if row.pct_change_prev_day != 'NaN' and row.pct_change_prev_day|float > 0 %}pct-up{% elif row.pct_change_prev_day != 'NaN' and row.pct_change_prev_day|float < 0 %}pct-down{% endif %}">{{ row.pct_change_prev_day }}</td>
               </tr>
               {% endfor %}
             </tbody>

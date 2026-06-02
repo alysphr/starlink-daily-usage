@@ -46,14 +46,18 @@ This is the most reliable method because Starlink blocks automated logins.
 3) Export cookies as JSON using the Cookie-Editor extension.
 4) Open http://127.0.0.1:5055, click Live Login.
 5) Paste the daily usage URL.
-6) Paste the cookies JSON into the cookies box.
+6) Paste the cookies JSON into the cookies box (required if login is blocked).
 7) Click Log In & Scrape.
 8) Download the CSV.
 
 ## CSV Output
 The CSV contains:
 - day_index
+- date (YYYY-MM-DD, derived from the scrape month)
+- day_of_week (Monday, Tuesday, …)
+- month (January, February, …)
 - usage_gb
+- pct_change_prev_day (% change vs. previous day; NaN for Day 1 or when previous day is 0)
 
 ## Files
 - app.py: Flask app and Web UI
