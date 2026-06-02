@@ -135,6 +135,24 @@ body {
   font-family: "IBM Plex Mono", "Courier New", monospace;
 }
 
+.date-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.date-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.date-input {
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  max-width: 220px;
+}
+
 .text-area {
   resize: vertical;
 }

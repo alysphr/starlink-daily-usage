@@ -1,5 +1,5 @@
 import io
-from datetime import datetime
+from datetime import date, datetime
 from flask import Flask, render_template, request, send_file
 from scraper import fetch_usage_html, parse_daily_usage, to_csv
 
@@ -10,6 +10,17 @@ LATEST = {
     "rows": None,
     "filename": None,
 }
+
+
+def _parse_billing_date(value: str):
+    """Parse a YYYY-MM-DD string into a date. Returns None if blank or invalid."""
+    value = value.strip()
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -34,6 +45,7 @@ def index():
             elif not cookies_json and (not username or not password):
                 error = "Provide username/password or paste cookies JSON."
             else:
+                billing_start = _parse_billing_date(request.form.get("billing_start", ""))
                 try:
                     html = fetch_usage_html(
                         url,
@@ -43,7 +55,7 @@ def index():
                         use_edge=use_edge,
                         cookies_json=cookies_json or None,
                     )
-                    daily = parse_daily_usage(html)
+                    daily = parse_daily_usage(html, billing_start_date=billing_start)
                     csv_text = to_csv(daily)
 
                     LATEST["csv"] = csv_text
@@ -61,7 +73,8 @@ def index():
             else:
                 try:
                     html = upload.read().decode("utf-8", errors="ignore")
-                    daily = parse_daily_usage(html)
+                    billing_start = _parse_billing_date(request.form.get("billing_start", ""))
+                    daily = parse_daily_usage(html, billing_start_date=billing_start)
                     csv_text = to_csv(daily)
 
                     LATEST["csv"] = csv_text

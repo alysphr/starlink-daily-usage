@@ -65,7 +65,7 @@ def _extract_axis_max_gb(html: str) -> float:
 
 def parse_daily_usage(
     html: str,
-    reference_date: Optional[date] = None,
+    billing_start_date: Optional[date] = None,
 ) -> List["DailyUsage"]:
     bars = _extract_bars(html)
     if not bars:
@@ -81,11 +81,13 @@ def parse_daily_usage(
 
     max_gb = _extract_axis_max_gb(html)
 
-    # Use today as the billing-month anchor when no reference date is given.
-    # Day 1 = the 1st of that month; Day N = the Nth of that month.
-    if reference_date is None:
-        reference_date = date.today()
-    month_start = date(reference_date.year, reference_date.month, 1)
+    # billing_start_date is the first day shown on the Starlink usage chart.
+    # The user must supply this from the "Billing period" shown on the Starlink page.
+    # If not provided, we fall back to the 1st of today's month — which may be wrong.
+    if billing_start_date is None:
+        today = date.today()
+        billing_start_date = date(today.year, today.month, 1)
+    month_start = billing_start_date
 
     usages: List[float] = []
     for bar in bars:

@@ -27,32 +27,42 @@
         </button>
       </div>
 
-      <form method="post" enctype="multipart/form-data" class="upload" id="upload-form">
-        <input type="hidden" name="mode" value="upload" />
-        <label class="file-input">
-          <input type="file" name="html_file" accept=".html" required />
-          <span>Choose Starlink HTML file</span>
-        </label>
-        <button type="submit" class="cta">Parse Daily Usage</button>
-      </form>
+        <form method="post" enctype="multipart/form-data" class="upload" id="upload-form">
+          <input type="hidden" name="mode" value="upload" />
+          <label class="file-input">
+            <input type="file" name="html_file" accept=".html" required />
+            <span>Choose Starlink HTML file</span>
+          </label>
+          <div class="date-row">
+            <label class="date-label" for="billing_start_upload">Billing Period Start Date</label>
+            <input class="text-input date-input" type="date" id="billing_start_upload" name="billing_start" />
+            <span class="helper">Enter Day 1 of your billing cycle (check your Starlink account page)</span>
+          </div>
+          <button type="submit" class="cta">Parse Daily Usage</button>
+        </form>
 
-      <form method="post" class="upload live-form" id="live-form">
-        <input type="hidden" name="mode" value="live" />
-        <input class="text-input" type="text" name="username" placeholder="Starlink username" />
-        <input class="text-input" type="password" name="password" placeholder="Starlink password" />
-        <input class="text-input" type="url" name="target_url" placeholder="Daily usage URL" required />
-          <textarea class="text-input text-area" name="cookies_json" placeholder="Paste cookies JSON (required if login is blocked)" rows="4"></textarea>
-        <label class="checkbox-row">
-          <input type="checkbox" name="open_browser" />
-          <span>Open browser window (use if login blocks)</span>
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" name="use_edge" checked />
-          <span>Use Microsoft Edge for login</span>
-        </label>
-          <p class="helper">If automation fails or shows an error, paste cookies JSON from your logged-in Edge session.</p>
-        <button type="submit" class="cta">Log In & Scrape</button>
-      </form>
+        <form method="post" class="upload live-form" id="live-form">
+          <input type="hidden" name="mode" value="live" />
+          <input class="text-input" type="text" name="username" placeholder="Starlink username" />
+          <input class="text-input" type="password" name="password" placeholder="Starlink password" />
+          <input class="text-input" type="url" name="target_url" placeholder="Daily usage URL" required />
+          <div class="date-row">
+            <label class="date-label" for="billing_start_live">Billing Period Start Date</label>
+            <input class="text-input date-input" type="date" id="billing_start_live" name="billing_start" />
+            <span class="helper">Enter Day 1 of your billing cycle (check your Starlink account page)</span>
+          </div>
+            <textarea class="text-input text-area" name="cookies_json" placeholder="Paste cookies JSON (required if login is blocked)" rows="4"></textarea>
+          <label class="checkbox-row">
+            <input type="checkbox" name="open_browser" />
+            <span>Open browser window (use if login blocks)</span>
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" name="use_edge" checked />
+            <span>Use Microsoft Edge for login</span>
+          </label>
+            <p class="helper">If automation fails or shows an error, paste cookies JSON from your logged-in Edge session.</p>
+          <button type="submit" class="cta">Log In & Scrape</button>
+        </form>
 
       {% if error %}
       <div class="alert">{{ error }}</div>
