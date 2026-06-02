@@ -1,2 +1,6 @@
 Flask==3.0.3
 playwright==1.49.0
+
+# After running: pip install -r requirements.txt
+# Also run:      python -m playwright install
+# This downloads the browser binaries required for live scraping.
