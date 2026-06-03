@@ -33,7 +33,7 @@ Then open http://127.0.0.1:5055
    python app.py
    ```
 3) Open http://127.0.0.1:5055
-4) Log in to Starlink in Edge and export cookies as JSON.
+4) Log in to Starlink in Edge and export cookies as JSON **(requires the "Cookie-Editor" extension)**.
 5) Paste cookies JSON + daily usage URL into Live Login and click Log In & Scrape.
 6) Download the CSV.
 
