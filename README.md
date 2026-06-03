@@ -53,11 +53,17 @@ This is the most reliable method because Starlink blocks automated logins.
 ## CSV Output
 The CSV contains:
 - day_index
-- date (YYYY-MM-DD, derived from the scrape month)
+- date (YYYY-MM-DD, 100% accurate, automatically extracted from the API)
 - day_of_week (Monday, Tuesday, …)
 - month (January, February, …)
 - usage_gb
 - pct_change_prev_day (% change vs. previous day; NaN for Day 1 or when previous day is 0)
+
+## Behind the Scenes Features
+- **Automated Historical Scraping:** The bot automatically clicks through all previous months to load your entire usage history into the API.
+- **Raw API Interception:** Instead of just scraping the HTML, the bot intercepts Starlink's raw JSON telemetry data, allowing it to extract 100% accurate usage dates without any manual input.
+- **Cute Lilac UI:** A totally redesigned, aesthetic web interface.
+- **Fallback HTML Parsing:** If the API interception ever fails, it safely falls back to analyzing the height of the HTML chart bars!
 
 ## Files
 - app.py: Flask app and Web UI
