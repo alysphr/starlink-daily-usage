@@ -6,20 +6,6 @@ This project logs into the Starlink account page, extracts daily data usage from
 - Python 3.11+
 - Microsoft Edge (for cookie-based login)
 
-## Install
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-python -m playwright install
-```
-
-## Run
-```bash
-python app.py
-```
-Then open http://127.0.0.1:5055
-
 ## Professor Quick Start
 1) Install dependencies:
    ```bash
