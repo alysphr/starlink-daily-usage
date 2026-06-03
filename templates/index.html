@@ -49,12 +49,12 @@
           <div class="date-row">
             <label class="date-label" for="billing_start_live">Billing Period Start Date</label>
             <input class="text-input date-input" type="date" id="billing_start_live" name="billing_start" />
-            <span class="helper">Enter Day 1 of your billing cycle (check your Starlink account page)</span>
+            <span class="helper">Optional: Enter Day 1 of your billing cycle (we usually auto-detect this via the API!)</span>
           </div>
             <textarea class="text-input text-area" name="cookies_json" placeholder="Paste cookies JSON (required if login is blocked)" rows="4"></textarea>
           <label class="checkbox-row">
             <input type="checkbox" name="open_browser" />
-            <span>Open browser window (use if login blocks)</span>
+            <span>Open browser window (watch the bot click through the months!)</span>
           </label>
           <label class="checkbox-row">
             <input type="checkbox" name="use_edge" checked />
@@ -115,7 +115,7 @@
 
     <section class="note">
       <h3>✦ How it works</h3>
-      <p>This parser reads the chart bars, converts bar height to GB using the chart scale, and assigns Day 1..N based on bar order. Enter your billing period start date so the dates in your CSV are accurate. 💜</p>
+      <p>For Live Login, the scraper intercepts Starlink's raw API data and automatically clicks through historical months to gather all your past data with 100% accurate dates. For HTML uploads, it reads the chart bars and converts them to GB using the chart scale. 💜</p>
     </section>
   </div>
   <script>

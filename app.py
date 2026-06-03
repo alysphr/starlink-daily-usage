@@ -1,7 +1,7 @@
 import io
 from datetime import date, datetime
 from flask import Flask, render_template, request, send_file
-from scraper import fetch_usage_html, parse_daily_usage, to_csv
+from scraper import fetch_usage_html, parse_daily_usage, parse_api_json, to_csv
 
 app = Flask(__name__)
 
@@ -47,7 +47,7 @@ def index():
             else:
                 billing_start = _parse_billing_date(request.form.get("billing_start", ""))
                 try:
-                    html = fetch_usage_html(
+                    html, api_payloads = fetch_usage_html(
                         url,
                         username,
                         password,
@@ -55,7 +55,14 @@ def index():
                         use_edge=use_edge,
                         cookies_json=cookies_json or None,
                     )
-                    daily = parse_daily_usage(html, billing_start_date=billing_start)
+                    
+                    if api_payloads:
+                        # Success! We captured the raw API data with exact dates
+                        daily = parse_api_json(api_payloads)
+                    else:
+                        # Fallback to the old HTML parsing if network interception failed
+                        daily = parse_daily_usage(html, billing_start_date=billing_start)
+                        
                     csv_text = to_csv(daily)
 
                     LATEST["csv"] = csv_text

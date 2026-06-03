@@ -4,7 +4,7 @@ import json
 import re
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import List, Optional
+from typing import List, Optional, Tuple, Any
 
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
@@ -116,6 +116,99 @@ def parse_daily_usage(
     return daily
 
 
+def parse_api_json(payloads: List[dict]) -> List[DailyUsage]:
+    """
+    Parses the intercepted JSON payloads from the Starlink Telemetry API.
+    The payload usually contains 'billingCyclesAnnotated', which has 'billingCycle' start dates
+    and 'dailyData' which contains arrays of numbers for each day's usage.
+    """
+    if not payloads:
+        raise ValueError("No API payloads to parse.")
+        
+    all_days = {}
+    
+    for payload in payloads:
+        # The actual data is usually wrapped inside a 'content' object
+        if "content" in payload:
+            payload = payload["content"]
+            
+        cycles = payload.get("billingCyclesAnnotated", [])
+        for cycle in cycles:
+            # The start date is directly on the cycle object
+            start_str = cycle.get("startDate")
+            
+            # Note: Starlink uses 'roamingData', 'residentialData', etc.
+            # Usually daily usage is inside 'dailyData'
+            daily_data = cycle.get("dailyData")
+            
+            if not daily_data and "series" in cycle:
+                for series in cycle["series"]:
+                    if "data" in series:
+                        daily_data = series["data"]
+                        break
+                        
+            if not start_str or not daily_data:
+                continue
+                
+            try:
+                # parse '2025-11-17T00:00:00Z' to a date
+                cycle_start = date.fromisoformat(start_str.split("T")[0])
+            except ValueError:
+                continue
+                
+            for i, day_val in enumerate(daily_data):
+                usage = 0.0
+                if isinstance(day_val, list) and len(day_val) > 0:
+                    usage = float(day_val[0])
+                elif isinstance(day_val, (int, float)):
+                    usage = float(day_val)
+                    
+                usage_gb = round(usage, 2)
+                day_date = cycle_start + timedelta(days=i)
+                day_key = day_date.strftime("%Y-%m-%d")
+                
+                # Keep the largest value for a given day in case of overlapping payloads
+                if day_key not in all_days or usage_gb > all_days[day_key]["usage_gb"]:
+                    all_days[day_key] = {
+                        "date": day_date,
+                        "usage_gb": usage_gb
+                    }
+                    
+    if not all_days:
+        # Dump for debugging
+        import json
+        with open("debug_payloads.json", "w") as f:
+            json.dump(payloads, f, indent=2)
+        raise ValueError("Could not extract any daily data from the intercepted API. See debug_payloads.json")
+        
+    # Sort chronologically
+    sorted_days = sorted(all_days.values(), key=lambda x: x["date"])
+    
+    daily = []
+    for index, day_obj in enumerate(sorted_days, start=1):
+        day_date = day_obj["date"]
+        usage = day_obj["usage_gb"]
+        
+        if index == 1 or sorted_days[index - 2]["usage_gb"] == 0:
+            pct = "NaN"
+        else:
+            prev = sorted_days[index - 2]["usage_gb"]
+            pct = f"{((usage - prev) / prev * 100):.4f}"
+            
+        daily.append(
+            DailyUsage(
+                day_index=index,
+                date=day_date.strftime("%Y-%m-%d"),
+                day_of_week=day_date.strftime("%A"),
+                month=day_date.strftime("%B"),
+                usage_gb=usage,
+                pct_change_prev_day=pct,
+            )
+        )
+        
+    return daily
+
+
 def fetch_usage_html(
     url: str,
     username: str,
@@ -123,7 +216,7 @@ def fetch_usage_html(
     headless: bool,
     use_edge: bool,
     cookies_json: Optional[str] = None,
-) -> str:
+) -> Tuple[str, List[dict]]:
     with sync_playwright() as playwright:
         launch_kwargs = {"headless": headless}
         if use_edge:
@@ -136,6 +229,17 @@ def fetch_usage_html(
             context.add_cookies(cookies)
 
         page = context.new_page()
+
+        api_payloads = []
+        def handle_response(response):
+            if "api/telemetryagg/v1/data-usage" in response.url and "annotated" in response.url:
+                try:
+                    data = response.json()
+                    api_payloads.append(data)
+                except Exception:
+                    pass
+
+        page.on("response", handle_response)
 
         page.goto(url, wait_until="domcontentloaded")
 
@@ -159,11 +263,13 @@ def fetch_usage_html(
                 )
                 page.click(submit_selector)
 
-                page.wait_for_load_state("networkidle", timeout=20000)
+                page.wait_for_timeout(3000) # Give login a moment
             except PlaywrightTimeoutError:
                 pass
 
-        page.goto(url, wait_until="networkidle")
+        # We navigate again just in case login redirected us away.
+        # Avoid networkidle because Starlink has background tracking that prevents it.
+        page.goto(url, wait_until="domcontentloaded")
 
         try:
             page.wait_for_selector(
@@ -171,6 +277,25 @@ def fetch_usage_html(
                 state="attached",
                 timeout=40000,
             )
+            
+            # AUTOMATION: Click all month labels to load historical data
+            # The month labels usually appear in a row above the chart.
+            try:
+                # We wait a moment for the chart to fully settle
+                page.wait_for_timeout(2000)
+                # Find the container with months (usually near the chart). 
+                # We can target elements that look like month names.
+                month_labels = page.locator("text=Jan, text=Feb, text=Mar, text=Apr, text=May, text=Jun, text=Jul, text=Aug, text=Sep, text=Oct, text=Nov, text=Dec, text=Nov-Dec, text=Dec-Jan")
+                count = month_labels.count()
+                for i in range(count):
+                    try:
+                        month_labels.nth(i).click(timeout=2000)
+                        page.wait_for_timeout(1000) # Give it time to fetch the API
+                    except Exception:
+                        pass
+            except Exception:
+                pass # If clicking fails, we just silently continue and we'll at least have the current month
+
         except PlaywrightTimeoutError as exc:
             raise PlaywrightTimeoutError(
                 "Chart bars not found. Try enabling 'Open browser window' "
@@ -179,7 +304,7 @@ def fetch_usage_html(
 
         html = page.content()
         browser.close()
-        return html
+        return html, api_payloads
 
 
 def _parse_cookie_json(cookie_text: str) -> List[dict]:
